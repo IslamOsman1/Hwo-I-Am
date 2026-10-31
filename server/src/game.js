@@ -86,7 +86,7 @@ export function joinRoom(room, name, now) {
   return {token, player};
 }
 export function ranking(room) {
-  const scores = room.players.map(p => ({id: p.id, name: p.name, score: 0, correct: 0, totalMs: 0, averageMs: null}));
+  const scores = room.players.map(p => ({id: p.id, name: p.name, ...(p.avatar ? {avatar: p.avatar} : {}), score: 0, correct: 0, totalMs: 0, averageMs: null}));
   for (const item of room.history) {
     const count = Object.values(item.answers).filter(a => a.correct).length;
     for (const p of scores) {
@@ -108,7 +108,7 @@ function reveal(room, bank, now) {
   if (room.phase !== 'question') return;
   const q = bank.find(q => q.id === room.deck[room.index]);
   room.history.push({index: room.index, questionId: q.id, prompt: q.prompt,
-    category: q.category, answer: q.answers[0], explanation: q.explanation,
+    category: q.category, answer: q.answers[0], explanation: q.explanation, ...(q.image ? {image: q.image} : {}),
     answers: structuredClone(room.answers)});
   room.phase = 'review'; room.updatedAt = now;
 }
@@ -177,8 +177,9 @@ export function publicRoom(room, viewerId, bank, online, now) {
     round: room.index >= 0 ? Math.floor(room.index / room.settings.questionsPerRound) + 1 : 1,
     questionInRound: room.index >= 0 ? room.index % room.settings.questionsPerRound + 1 : 0,
     startsAt: room.startsAt, deadline: room.deadline, serverNow: now, revision: room.revision,
-    players: room.players.map(({id, name, ready}) => ({id, name, ready, online: online.has(id)})),
-    question: room.phase === 'question' && current ? {prompt: current.prompt, category: current.category, level: current.level} : null,
+    ...(room.pack ? {pack: room.pack} : {}),
+    players: room.players.map(({id, name, ready, avatar}) => ({id, name, ready, ...(avatar ? {avatar} : {}), online: online.has(id)})),
+    question: room.phase === 'question' && current ? {prompt: current.prompt, category: current.category, level: current.level, ...(current.image ? {image: current.image} : {})} : null,
     submitted: Object.keys(room.answers), ownAnswer: room.answers[viewerId]?.text ?? null,
     history: room.history, audit: room.audit, ranking: ranking(room)};
 }

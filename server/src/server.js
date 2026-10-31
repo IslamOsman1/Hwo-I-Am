@@ -5,19 +5,21 @@ import {fileURLToPath} from 'node:url';
 import {WebSocketServer, WebSocket} from 'ws';
 import {RoomStore} from './store.js';
 import {iceConfig} from './ice.js';
+import {connectAccounts} from './accounts.js';
 import {GameError, check, digest, createRoom, joinRoom, command, advanceClock, publicRoom} from './game.js';
 
-export function startServer({port = Number(process.env.PORT || 3000), dataDir = process.env.DATA_DIR || './storage', now = Date.now} = {}) {
+export function startServer({port = Number(process.env.PORT || 3000), dataDir = process.env.DATA_DIR || './storage', now = Date.now, accountApi = null} = {}) {
   const bank = JSON.parse(readFileSync(fileURLToPath(new URL('../data/questions.json', import.meta.url)), 'utf8'));
   const store = new RoomStore(dataDir);
   const peers = new Map();
   const ipLimits = new Map();
   const send = (ws, value) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(value)); };
   const online = code => new Set([...(peers.get(code)?.keys() ?? [])]);
+  const bankFor = room => room.customBank ?? bank;
   const broadcast = code => {
     const room = store.rooms.get(code);
     if (!room) return;
-    for (const [id, ws] of peers.get(code) ?? []) send(ws, {type: 'state', room: publicRoom(room, id, bank, online(code), now())});
+    for (const [id, ws] of peers.get(code) ?? []) send(ws, {type: 'state', room: publicRoom(room, id, bankFor(room), online(code), now())});
   };
   function iceFor(id) {
     return iceConfig(id, now());
@@ -26,7 +28,11 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '2.0.0', questions: bank.length})); return; }
+    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '3.0.0', questions: bank.length, accounts: !!accountApi})); return; }
+    if (req.url?.startsWith('/api/')) {
+      if (accountApi) { void accountApi.handle(req, res); return; }
+      res.statusCode = 503; res.end(JSON.stringify({error: 'الحسابات قيد التجهيز؛ جرّب بعد شوية'})); return;
+    }
     res.statusCode = 404; res.end('{"error":"Not found"}');
   });
   const wss = new WebSocketServer({noServer: true, maxPayload: 64 * 1024, perMessageDeflate: false});
@@ -51,7 +57,12 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
       send(ws, {type: 'session', code: room.code, playerId: id, ...(token ? {token} : {}), ...iceFor(id)});
       broadcast(room.code);
     };
+    let work = Promise.resolve();
+    let queued = 0;
     ws.on('message', bytes => {
+      if (++queued > 32) { ws.close(1008, 'Too many pending requests'); return; }
+      work = work.then(async () => {
+      if (ws.readyState !== WebSocket.OPEN) return;
       try {
         if (now() - ws.window.at >= 10000) ws.window = {at: now(), count: 0};
         check(++ws.window.count <= 150, 'طلبات كتير؛ استنى شوية');
@@ -63,14 +74,27 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
             check(store.rooms.size < 2000, 'السيرفر مشغول؛ جرّب بعد شوية');
             let code;
             do { code = String(randomInt(100000, 1000000)); } while (store.rooms.has(code));
-            const {room, token} = createRoom(code, message.name, message.settings, bank, now());
+            const user = message.accountToken && accountApi ? await accountApi.authenticate(message.accountToken) : null;
+            let custom;
+            if (message.packId) {
+              check(accountApi, 'الباقات قيد التجهيز');
+              custom = await accountApi.packForGame(message.packId, message.accountToken);
+              check([...store.rooms.values()].filter(r => r.customBank).length < 100, 'غرف الباقات مشغولة دلوقتي؛ جرّب لاحقًا');
+            }
+            const chosenBank = custom?.bank ?? bank;
+            const settings = custom ? {...message.settings, categories: ['باقة مخصصة'], level: 'mixed'} : message.settings;
+            const {room, token} = createRoom(code, user?.name ?? message.name, settings, chosenBank, now());
+            if (user) { room.players[0].accountId = user._id; room.players[0].avatar = user.avatar; }
+            if (custom) { room.customBank = chosenBank; room.pack = custom.pack; }
             store.save(room); attach(room, room.hostId, token); return;
           }
           const code = String(message.code ?? '').trim();
           const saved = store.rooms.get(code); check(saved, 'كود الغرفة مش موجود أو انتهت صلاحيته');
           if (message.type === 'join') {
             const room = structuredClone(saved);
-            const {player, token} = joinRoom(room, message.name, now());
+            const user = message.accountToken && accountApi ? await accountApi.authenticate(message.accountToken) : null;
+            const {player, token} = joinRoom(room, user?.name ?? message.name, now());
+            if (user) { player.accountId = user._id; player.avatar = user.avatar; }
             store.save(room); attach(room, player.id, token); return;
           }
           if (message.type === 'resume') {
@@ -92,14 +116,18 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
           ws.close(1000, 'Left room'); return;
         }
         let room = structuredClone(store.rooms.get(code));
-        if (advanceClock(room, bank, now())) { room.revision++; store.save(room); broadcast(code); room = structuredClone(room); }
-        command(room, id, message, bank, now(), online(code));
+        const activeBank = bankFor(room);
+        if (advanceClock(room, activeBank, now())) { room.revision++; store.save(room); broadcast(code); room = structuredClone(room); }
+        command(room, id, message, activeBank, now(), online(code));
+        if (message.type === 'start' && room.pack && accountApi) {
+          void accountApi.played(room.pack.id).catch(() => console.error('Pack play count update failed'));
+        }
         room.revision++; store.save(room); broadcast(code);
       } catch (error) {
         if (!(error instanceof GameError) && !(error instanceof SyntaxError)) console.error('Room operation failed:', error.message);
-        send(ws, {type: 'error', message: error instanceof GameError ? error.message : 'حصلت مشكلة في الطلب؛ جرّب تاني'});
+        send(ws, {type: 'error', message: error instanceof GameError || error.status ? error.message : 'حصلت مشكلة في الطلب؛ جرّب تاني'});
       }
-    });
+    }).catch(() => { ws.close(1011, 'Operation failed'); }).finally(() => { queued--; }); });
     ws.on('error', () => {});
     ws.on('close', () => {
       clearTimeout(authTimer);
@@ -115,8 +143,9 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     try {
       for (const saved of store.rooms.values()) {
         if (!['question', 'countdown'].includes(saved.phase)) continue;
+        if (saved.phase === 'countdown' ? now() < saved.startsAt : now() < saved.deadline) continue;
         const room = structuredClone(saved);
-        if (advanceClock(room, bank, now())) { room.revision++; store.save(room); broadcast(room.code); }
+        if (advanceClock(room, bankFor(room), now())) { room.revision++; store.save(room); broadcast(room.code); }
       }
     } catch (error) { console.error('Clock commit failed:', error.message); }
   }, 100);
@@ -135,7 +164,8 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
   return {http, wss, store, bank, close};
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const app = startServer();
+  const accounts = process.env.MONGODB_URI ? await connectAccounts(process.env.MONGODB_URI, process.env.MONGODB_DB || 'menana') : null;
+  const app = startServer({accountApi: accounts?.api});
   app.http.on('listening', () => console.log(`MenAna trivia listening on ${app.http.address().port}`));
-  for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, async () => { await app.close(); process.exit(0); });
+  for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, async () => { await app.close(); await accounts?.close(); process.exit(0); });
 }

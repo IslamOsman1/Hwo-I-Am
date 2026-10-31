@@ -1,9 +1,21 @@
 {
   "name": "menana-trivia-server",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
-  "engines": {"node": ">=22"},
-  "scripts": {"start": "node src/server.js", "test": "node --test"},
-  "dependencies": {"ws": "^8.18.3"}
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "mongodb": "^7.8.0",
+    "sharp": "^0.35.5",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "mongodb-memory-server-core": "^11.3.0"
+  }
 }

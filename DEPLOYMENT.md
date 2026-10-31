@@ -24,6 +24,12 @@ Run again from the full local app workspace:
 node tools/trivia_remote_smoke.mjs https://menana-trivia.onrender.com
 ```
 
-`TURN_URLS` and `TURN_SECRET` have not been configured: they require a real coturn
-service with the same shared secret. No placeholder credentials were installed.
+Metered TURN credential `MenAna Render` is configured using `TURN_URLS`,
+`TURN_USERNAME` and `TURN_CREDENTIAL` in Render Environment only. The selected
+plan is the 500 MB free trial, without a payment card. No credentials are in
+the source archive or APK. `TURN_SECRET` is unused for this managed provider.
+Authenticated relay allocations passed on TCP 80 and TLS 443. Two independent
+ICE clients forced to relay-only exchanged data in both directions, then released
+their allocations. Test: `node tools/trivia_turn_smoke.mjs https://menana-trivia.onrender.com`
+(test-only Python dependency: aioice in `.dist/turn-check-deps`).
 A two-phone cross-network audio/video call has not been verified.

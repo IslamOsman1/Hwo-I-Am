@@ -1,9 +1,10 @@
 import {createServer} from 'node:http';
-import {randomInt, createHmac, timingSafeEqual} from 'node:crypto';
+import {randomInt, timingSafeEqual} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {WebSocketServer, WebSocket} from 'ws';
 import {RoomStore} from './store.js';
+import {iceConfig} from './ice.js';
 import {GameError, check, digest, createRoom, joinRoom, command, advanceClock, publicRoom} from './game.js';
 
 export function startServer({port = Number(process.env.PORT || 3000), dataDir = process.env.DATA_DIR || './storage', now = Date.now} = {}) {
@@ -19,13 +20,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     for (const [id, ws] of peers.get(code) ?? []) send(ws, {type: 'state', room: publicRoom(room, id, bank, online(code), now())});
   };
   function iceFor(id) {
-    const urls = (process.env.TURN_URLS || '').split(',').map(x => x.trim()).filter(Boolean);
-    const iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
-    if (urls.length && process.env.TURN_SECRET) {
-      const username = `${Math.floor(now() / 1000) + 86400}:${id}`;
-      iceServers.push({urls, username, credential: createHmac('sha1', process.env.TURN_SECRET).update(username).digest('base64')});
-    }
-    return {iceServers, turnConfigured: iceServers.length > 1};
+    return iceConfig(id, now());
   }
   const http = createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');

@@ -2,20 +2,16 @@ services:
   - type: web
     name: menana-trivia
     runtime: node
-    plan: starter
+    plan: free
     rootDir: server
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
-    disk:
-      name: trivia-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATA_DIR
-        value: /var/data
+        value: ./storage
       - key: TURN_URLS
         sync: false
       - key: TURN_SECRET

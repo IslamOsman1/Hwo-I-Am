@@ -3,6 +3,7 @@ import {randomBytes, scrypt, timingSafeEqual} from 'node:crypto';
 import {promisify} from 'node:util';
 import sharp from 'sharp';
 import {digest, normalize, playerName, GameError} from './game.js';
+import {questionIdentity} from './question_identity.js';
 
 const derive = promisify(scrypt);
 const DAY = 86400000;
@@ -57,7 +58,7 @@ async function imageFor(value, dimension = 640) {
     throw new ApiError(400, 'الصورة غير مدعومة أو تالفة');
   } finally { imageJobs--; }
 }
-async function packFields(input) {
+export async function packFields(input) {
   requireValue(input && typeof input === 'object', 'بيانات الباقة مش صحيحة');
   const title = text(input.title, 68, 'اسم الباقة');
   const description = text(input.description ?? '', 300, 'الوصف', true);
@@ -65,20 +66,26 @@ async function packFields(input) {
   requireValue(typeof input.isPublic === 'boolean', 'اختار خصوصية الباقة');
   requireValue(!input.isPublic || input.questions.length >= 13, 'النشر العام محتاج ١٣ سؤال على الأقل');
   const questions = [];
-  const prompts = new Set();
+  const prompts = new Map();
   const ids = new Set();
-  for (const value of input.questions) {
+  for (const [index, value] of input.questions.entries()) {
     requireValue(value && typeof value === 'object' && !Array.isArray(value), 'بيانات السؤال مش صحيحة');
     const prompt = text(value.prompt, 225, 'السؤال');
-    requireValue(!prompts.has(normalize(prompt)), 'فيه سؤال متكرر في الباقة'); prompts.add(normalize(prompt));
+    const image = await imageFor(value.image);
+    const key = questionIdentity(prompt, image);
+    const previous = prompts.get(key);
+    requireValue(previous === undefined, `السؤال رقم ${index + 1} مكرر مع السؤال رقم ${(previous ?? 0) + 1}: «${prompt.slice(0, 70)}»`);
+    prompts.set(key, index);
     requireValue(Array.isArray(value.answers) && value.answers.length >= 1 && value.answers.length <= 10, 'اكتب إجابة أساسية وبحد أقصى ٩ بدائل');
     const answers = [...new Set(value.answers.map(a => text(a, 80, 'الإجابة')))];
     requireValue(answers.every(a => normalize(a).length > 0), 'الإجابة لازم تحتوي حروف أو أرقام');
-    const id = typeof value.id === 'string' && /^[a-f0-9]{24}$/.test(value.id) ? value.id : newId();
-    requireValue(!ids.has(id), 'معرّف سؤال متكرر؛ افتح الباقة من جديد'); ids.add(id);
+    let id = typeof value.id === 'string' && /^[a-f0-9]{24}$/.test(value.id) ? value.id : newId();
+    // A repeated editor ID is repaired without rejecting different questions.
+    while (ids.has(id)) id = newId();
+    ids.add(id);
     questions.push({id,
       prompt, answers, explanation: text(value.explanation ?? '', 300, 'التوضيح', true),
-      image: await imageFor(value.image), category: 'باقة مخصصة', level: value.level === 'medium' ? 'medium' : 'easy'});
+      image, category: 'باقة مخصصة', level: value.level === 'medium' ? 'medium' : 'easy'});
   }
   const result = {title, description, questions, isPublic: input.isPublic, cover: await imageFor(input.cover)};
   requireValue(Buffer.byteLength(JSON.stringify(result)) <= 3 * 1024 * 1024, 'حجم الباقة كبير؛ قلل عدد الصور أو حجمها');

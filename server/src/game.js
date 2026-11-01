@@ -173,6 +173,7 @@ export function command(room, playerId, message, bank, now, online) {
 export function publicRoom(room, viewerId, bank, online, now) {
   const current = room.index >= 0 ? bank.find(q => q.id === room.deck[room.index]) : null;
   return {code: room.code, hostId: room.hostId, settings: room.settings,
+    access: {mode: room.access?.mode ?? 'anyone', invitedIds: viewerId === room.hostId ? room.access?.invitedIds ?? [] : []},
     phase: room.phase, index: room.index, total: room.deck.length,
     round: room.index >= 0 ? Math.floor(room.index / room.settings.questionsPerRound) + 1 : 1,
     questionInRound: room.index >= 0 ? room.index % room.settings.questionsPerRound + 1 : 0,

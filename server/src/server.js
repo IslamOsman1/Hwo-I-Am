@@ -28,7 +28,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '3.0.0', questions: bank.length, accounts: !!accountApi})); return; }
+    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '4.0.0', questions: bank.length, accounts: !!accountApi})); return; }
     if (req.url?.startsWith('/api/')) {
       if (accountApi) { void accountApi.handle(req, res); return; }
       res.statusCode = 503; res.end(JSON.stringify({error: 'الحسابات قيد التجهيز؛ جرّب بعد شوية'})); return;
@@ -84,6 +84,8 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
             const chosenBank = custom?.bank ?? bank;
             const settings = custom ? {...message.settings, categories: ['باقة مخصصة'], level: 'mixed'} : message.settings;
             const {room, token} = createRoom(code, user?.name ?? message.name, settings, chosenBank, now());
+            if (accountApi) room.access = await accountApi.roomAccess(message.access, user);
+            else check(!message.access || message.access.mode === 'anyone', 'سجّل دخولك عشان تستخدم خصوصية الغرفة');
             if (user) { room.players[0].accountId = user._id; room.players[0].avatar = user.avatar; }
             if (custom) { room.customBank = chosenBank; room.pack = custom.pack; }
             store.save(room); attach(room, room.hostId, token); return;
@@ -93,6 +95,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
           if (message.type === 'join') {
             const room = structuredClone(saved);
             const user = message.accountToken && accountApi ? await accountApi.authenticate(message.accountToken) : null;
+            if (accountApi) await accountApi.allowJoin(room, user);
             const {player, token} = joinRoom(room, user?.name ?? message.name, now());
             if (user) { player.accountId = user._id; player.avatar = user.avatar; }
             store.save(room); attach(room, player.id, token); return;
@@ -106,6 +109,18 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
           throw new GameError('ادخل أو أنشئ غرفة الأول');
         }
         const {code, id} = ws.identity;
+        if (message.type === 'invite') {
+          const room = structuredClone(store.rooms.get(code));
+          check(accountApi && room.hostId === id && room.phase === 'lobby' && room.players.length < 2, 'صاحب الغرفة بس يقدر يدعو صديق وفيه مكان قبل البداية');
+          const user = await accountApi.authenticate(message.accountToken);
+          accountApi.rate(`invite:${user._id}`, 10);
+          check(room.access?.hostAccountId === user._id, 'الدعوة من حساب صاحب الغرفة فقط');
+          check(typeof message.friendId === 'string' && await accountApi.areFriends(user._id, message.friendId), 'اختار صديق مقبول عندك');
+          check(room.access.invitedIds.includes(message.friendId) || room.access.invitedIds.length < 100, 'وصلت للحد الأقصى للدعوات');
+          if (!room.access.invitedIds.includes(message.friendId)) room.access.invitedIds.push(message.friendId);
+          await accountApi.invite(room, user, message.friendId);
+          room.revision++; room.updatedAt = now(); store.save(room); broadcast(code); return;
+        }
         if (message.type === 'signal') {
           check(message.signal && typeof message.signal === 'object' && JSON.stringify(message.signal).length <= 60000, 'بيانات اتصال مش صحيحة');
           for (const [otherId, peer] of peers.get(code) ?? []) if (otherId !== id) send(peer, {type: 'signal', from: id, signal: message.signal});

@@ -1,5 +1,12 @@
 # Render deployment — 1 November 2026
 
+Prepared source 4.0.0 adds friendships, invitation enforcement, voice-only calls
+and admin-only pack writing. MongoDB runtime variables and admin bootstrap are
+configured in Render Environment. The new source must pass `tools/check_release.ps1`
+on the operator's machine before publication; no 4.0.0 APK is claimed built yet.
+After the first successful admin login, clear `ADMIN_BOOTSTRAP_PASSWORD` in Render;
+the account hash and admin role persist in MongoDB. Do not copy that secret to files.
+
 - Public service: https://menana-trivia.onrender.com
 - Health endpoint: https://menana-trivia.onrender.com/health
 - Dashboard: https://dashboard.render.com/web/srv-dbj6dj0u01pc73eje6o0

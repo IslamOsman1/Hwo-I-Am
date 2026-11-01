@@ -29,7 +29,10 @@ async function passwordMatches(value, saved) {
   return timingSafeEqual(Buffer.from(calculated.hash, 'hex'), Buffer.from(saved.hash, 'hex'));
 }
 const publicUser = user => ({id: user._id, name: user.name, email: user.email,
-  bio: user.bio, avatar: user.avatar, createdAt: user.createdAt, emailVerified: false});
+  bio: user.bio, avatar: user.avatar, createdAt: user.createdAt, emailVerified: false,
+  role: user.role === 'admin' ? 'admin' : 'member', friendCode: user.friendCode ?? user._id.toUpperCase()});
+const friendProfile = user => ({id: user._id, name: user.name, avatar: user.avatar,
+  friendCode: user.friendCode ?? user._id.toUpperCase()});
 const summary = p => ({id: p._id, title: p.title, description: p.description, cover: p.cover,
   questionCount: p.questions.length, isPublic: p.isPublic, author: p.author,
   plays: p.plays, shareCode: p.shareCode, revision: p.revision, updatedAt: p.updatedAt});
@@ -97,10 +100,16 @@ export class AccountApi {
   constructor(db, {now = Date.now} = {}) {
     this.db = db; this.now = now; this.limits = new Map(); this.hashes = 0;
     this.users = db.collection('users'); this.sessions = db.collection('sessions'); this.packs = db.collection('packs');
+    this.friends = db.collection('friendships');
+    this.invites = db.collection('game_invites');
   }
   async init() {
     await Promise.all([
       this.users.createIndex({email: 1}, {unique: true}),
+      this.users.createIndex({friendCode: 1}, {unique: true, sparse: true}),
+      this.friends.createIndex({members: 1, status: 1}),
+      this.invites.createIndex({expiresAt: 1}, {expireAfterSeconds: 0}),
+      this.invites.createIndex({toUserId: 1}),
       this.sessions.createIndex({expiresAt: 1}, {expireAfterSeconds: 0}),
       this.sessions.createIndex({userId: 1}),
       this.packs.createIndex({ownerId: 1, updatedAt: -1}),
@@ -129,6 +138,44 @@ export class AccountApi {
     requireValue((session.version ?? 0) === (user.sessionVersion ?? 0), 'الباسورد اتغيّر؛ سجّل دخولك تاني', 401);
     return user;
   }
+  requireAdmin(user) { requireValue(user.role === 'admin', 'إنشاء وتعديل الباقات للأدمن فقط', 403); }
+  async bootstrapAdmin(email, password) {
+    email = emailFor(email);
+    let user = await this.users.findOne({email});
+    if (user?.role === 'admin') return;
+    checkPassword(password);
+    if (user) {
+      requireValue(await this.hashWork(() => passwordMatches(password, user.password)), 'Existing admin email has a different password', 403);
+      await this.users.updateOne({_id: user._id}, {$set: {role: 'admin'}});
+    } else {
+      user = {_id: newId(), email, password: await this.hashWork(() => passwordHash(password)), name: 'Fouad Osman', bio: '', avatar: null, role: 'admin', friendCode: randomBytes(6).toString('hex').toUpperCase(), createdAt: this.now()};
+      await this.users.insertOne(user);
+    }
+  }
+  pair(a, b) { return [a, b].sort().join(':'); }
+  async areFriends(a, b) { return !!await this.friends.findOne({_id: this.pair(a, b), status: 'accepted'}); }
+  async roomAccess(input, user) {
+    const mode = input?.mode ?? 'anyone';
+    requireValue(['anyone', 'friends', 'invite'].includes(mode), 'اختار مين يقدر يدخل الغرفة');
+    requireValue(mode === 'anyone' || user, 'سجّل دخولك عشان تحدد دخول الأصدقاء', 401);
+    requireValue(input?.invitedIds == null || Array.isArray(input.invitedIds), 'قائمة الدعوات غير صحيحة');
+    const invitedIds = [...new Set(input?.invitedIds ?? [])];
+    requireValue(invitedIds.length <= 100 && invitedIds.every(id => typeof id === 'string' && /^[a-f0-9]{24}$/.test(id)), 'قائمة الدعوات غير صحيحة');
+    for (const id of invitedIds) requireValue(user && await this.areFriends(user._id, id), 'الدعوة لازم تكون لصديق مقبول عندك');
+    return {mode, hostAccountId: user?._id ?? null, invitedIds};
+  }
+  async allowJoin(room, user) {
+    const access = room.access;
+    if (!access || access.mode === 'anyone') return;
+    requireValue(user, 'الغرفة دي محتاجة تسجيل دخول', 401);
+    if (access.mode === 'friends') requireValue(await this.areFriends(access.hostAccountId, user._id), 'الغرفة متاحة لأصدقاء صاحبها فقط', 403);
+    if (access.mode === 'invite') requireValue(access.invitedIds.includes(user._id), 'صاحب الغرفة لازم يبعت لك دعوة الأول', 403);
+  }
+  async invite(room, from, to) {
+    await this.invites.updateOne({_id: `${room.code}:${to}`}, {$set: {toUserId: to, roomCode: room.code,
+      title: room.pack?.title ?? 'تحدي المعلومات', fromName: from.name, fromAvatar: from.avatar,
+      expiresAt: new Date(this.now() + 2 * 60 * 60000)}}, {upsert: true});
+  }
   async newSession(user) {
     const token = randomBytes(32).toString('base64url');
     await this.sessions.insertOne({_id: digest(token), userId: user._id, version: user.sessionVersion ?? 0, createdAt: new Date(this.now()), expiresAt: new Date(this.now() + 30 * DAY)});
@@ -145,7 +192,7 @@ export class AccountApi {
       requireValue(pack.ownerId === user._id, 'الباقة دي خاصة بصاحبها', 403);
     }
     requireValue(pack.questions.length > 0, 'ضيف سؤال واحد على الأقل قبل اللعب');
-    return {bank: pack.questions.map(q => ({...q, id: `${pack._id}-${q.id}`})), pack: {id: pack._id, title: pack.title}};
+    return {bank: pack.questions.map(q => ({...q, id: `${pack._id}-${q.id}`})), pack: {id: pack._id, title: pack.title, description: pack.description, author: pack.author, cover: pack.cover, questionCount: pack.questions.length, plays: pack.plays}};
   }
   async played(id) { await this.packs.updateOne({_id: id}, {$inc: {plays: 1}}); }
   async handle(req, res) {
@@ -165,7 +212,7 @@ export class AccountApi {
         if (route.endsWith('register')) {
           const name = playerName(input.name);
           const password = await this.hashWork(() => passwordHash(input.password));
-          const user = {_id: newId(), email, password, name, bio: '', avatar: null, createdAt: this.now()};
+          const user = {_id: newId(), email, password, name, bio: '', avatar: null, role: 'member', friendCode: randomBytes(6).toString('hex').toUpperCase(), createdAt: this.now()};
           try { await this.users.insertOne(user); }
           catch (error) { if (error.code === 11000) throw new ApiError(409, 'الإيميل ده مسجّل بالفعل؛ جرّب تسجيل الدخول'); throw error; }
           send(201, await this.newSession(user)); return;
@@ -202,6 +249,56 @@ export class AccountApi {
         await this.sessions.deleteMany({userId: user._id, version: {$ne: version}});
         send(200, await this.newSession({...user, password, sessionVersion: version})); return;
       }
+      if (route === '/api/people' && method === 'GET') {
+        const user = await this.authenticate(token);
+        const q = text(url.searchParams.get('q') ?? '', 68, 'البحث');
+        requireValue(q.length >= 2, 'اكتب حرفين على الأقل للبحث');
+        const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const people = await this.users.find({_id: {$ne: user._id}, $or: [{name: {$regex: escaped, $options: 'i'}}, {friendCode: q.toUpperCase()}, {_id: q.toLowerCase()}]}).project({password: 0, email: 0}).limit(20).toArray();
+        const relations = await this.friends.find({members: user._id}).toArray();
+        send(200, {people: people.map(p => {
+          const relation = relations.find(r => r.members.includes(p._id));
+          return {...friendProfile(p), relationship: !relation ? 'none' : relation.status === 'accepted' ? 'friends' : relation.requestedBy === user._id ? 'outgoing' : 'incoming'};
+        })}); return;
+      }
+      if (route === '/api/friends' && method === 'GET') {
+        const user = await this.authenticate(token);
+        const relations = await this.friends.find({members: user._id}).limit(1000).toArray();
+        const otherIds = relations.map(r => r.members.find(id => id !== user._id));
+        const people = await this.users.find({_id: {$in: otherIds}}).project({password: 0, email: 0}).toArray();
+        const result = {friends: [], incoming: [], outgoing: [], invitations: await this.invites.find({toUserId: user._id, expiresAt: {$gt: new Date(this.now())}}).project({_id: 0, toUserId: 0}).limit(30).toArray()};
+        for (const relation of relations) {
+          const person = people.find(p => relation.members.includes(p._id));
+          if (!person) continue;
+          const group = relation.status === 'accepted' ? 'friends' : relation.requestedBy === user._id ? 'outgoing' : 'incoming';
+          result[group].push(friendProfile(person));
+        }
+        send(200, result); return;
+      }
+      const friendRoute = /^\/api\/friends\/([a-f0-9]{24})$/.exec(route);
+      if (friendRoute && method === 'POST') {
+        const user = await this.authenticate(token); this.rate(`friend:${user._id}`, 30);
+        const other = friendRoute[1]; requireValue(other !== user._id, 'مينفعش تضيف نفسك');
+        requireValue(await this.users.findOne({_id: other}), 'الشخص مش موجود', 404);
+        const input = await readBody(req);
+        const pair = this.pair(user._id, other);
+        if (input.action === 'request') {
+          requireValue(await this.friends.countDocuments({members: user._id}) < 500, 'وصلت للحد الحالي لقائمة الأصدقاء');
+          requireValue(await this.friends.countDocuments({members: other}) < 500, 'قائمة طلبات الشخص ده ممتلئة حاليًا');
+          const relation = await this.friends.findOneAndUpdate({_id: pair}, {$setOnInsert: {members: [user._id, other], requestedBy: user._id, status: 'pending', createdAt: this.now()}}, {upsert: true, returnDocument: 'after'});
+          requireValue(relation.status !== 'accepted', 'إنتوا أصدقاء بالفعل', 409);
+          requireValue(relation.requestedBy === user._id, 'عندك طلب من الشخص ده؛ تقدر تقبله', 409);
+        } else if (input.action === 'accept') {
+          const result = await this.friends.updateOne({_id: pair, status: 'pending', requestedBy: other}, {$set: {status: 'accepted', acceptedAt: this.now()}});
+          requireValue(result.modifiedCount === 1, 'مفيش طلب وارد نقدر نقبله', 409);
+        } else {
+          requireValue(['decline', 'cancel', 'remove'].includes(input.action), 'طلب صداقة غير صحيح');
+          const filter = {_id: pair, status: input.action === 'remove' ? 'accepted' : 'pending'};
+          if (input.action !== 'remove') filter.requestedBy = input.action === 'cancel' ? user._id : other;
+          requireValue((await this.friends.deleteOne(filter)).deletedCount === 1, 'الطلب اتغيّر؛ حدّث القائمة', 409);
+        }
+        send(200, {ok: true}); return;
+      }
       if (route === '/api/packs' && method === 'GET') {
         const mine = url.searchParams.get('scope') === 'mine';
         const user = mine ? await this.authenticate(token) : null;
@@ -214,6 +311,7 @@ export class AccountApi {
       }
       if (route === '/api/packs' && method === 'POST') {
         const user = await this.authenticate(token); this.rate(`save:${user._id}`, 20);
+        this.requireAdmin(user);
         requireValue(await this.packs.countDocuments({ownerId: user._id}) < 20, 'الحد الحالي ٢٠ باقة للحساب');
         const fields = await packFields(await readBody(req));
         const pack = {...fields, _id: newId(), ownerId: user._id, author: user.name,
@@ -227,6 +325,7 @@ export class AccountApi {
         requireValue(pack, 'الباقة مش موجودة أو مش من إنشاءك', 404);
         if (method === 'GET') { send(200, {pack: editable(pack)}); return; }
         if (method === 'PUT') {
+          this.requireAdmin(user);
           this.rate(`save:${user._id}`, 20);
           const input = await readBody(req); const fields = await packFields(input);
           requireValue(Number.isInteger(input.revision), 'نسخة الباقة غير صحيحة');
@@ -250,6 +349,7 @@ export async function connectAccounts(uri, name = 'menana') {
   try {
     await client.connect();
     const api = await new AccountApi(client.db(name)).init();
+    if (process.env.ADMIN_EMAIL) await api.bootstrapAdmin(process.env.ADMIN_EMAIL, process.env.ADMIN_BOOTSTRAP_PASSWORD);
     return {api, close: () => client.close()};
   } catch (error) { await client.close(); throw error; }
 }

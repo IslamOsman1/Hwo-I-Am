@@ -1,9 +1,10 @@
 # Render deployment — 1 November 2026
 
-Prepared source 4.0.0 adds friendships, invitation enforcement, voice-only calls
-and admin-only pack writing. MongoDB runtime variables and admin bootstrap are
-configured in Render Environment. The new source must pass `tools/check_release.ps1`
-on the operator's machine before publication; no 4.0.0 APK is claimed built yet.
+Source 4.1.0 adds the built-in 195-country flag game. The server's complete
+21-test suite passes, including real MongoDB accounts and two WebSocket players.
+Publish the server snapshot, then verify Render's live commit and `/health`
+(version 4.1.0, flags 195). The Android release is `.dist/MenAna-4.1.0.apk`.
+
 After the first successful admin login, clear `ADMIN_BOOTSTRAP_PASSWORD` in Render;
 the account hash and admin role persist in MongoDB. Do not copy that secret to files.
 

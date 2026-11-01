@@ -6,6 +6,7 @@ import {WebSocketServer, WebSocket} from 'ws';
 import {RoomStore} from './store.js';
 import {iceConfig} from './ice.js';
 import {connectAccounts} from './accounts.js';
+import {flagBank, flagPack} from './flag_game.js';
 import {GameError, check, digest, createRoom, joinRoom, command, advanceClock, publicRoom} from './game.js';
 
 export function startServer({port = Number(process.env.PORT || 3000), dataDir = process.env.DATA_DIR || './storage', now = Date.now, accountApi = null} = {}) {
@@ -15,7 +16,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
   const ipLimits = new Map();
   const send = (ws, value) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(value)); };
   const online = code => new Set([...(peers.get(code)?.keys() ?? [])]);
-  const bankFor = room => room.customBank ?? bank;
+  const bankFor = room => room.customBank ?? (room.gameId === 'flags' ? flagBank : bank);
   const broadcast = code => {
     const room = store.rooms.get(code);
     if (!room) return;
@@ -28,7 +29,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '4.0.0', questions: bank.length, accounts: !!accountApi})); return; }
+    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '4.1.0', flags: flagBank.length, questions: bank.length, accounts: !!accountApi})); return; }
     if (req.url?.startsWith('/api/')) {
       if (accountApi) { void accountApi.handle(req, res); return; }
       res.statusCode = 503; res.end(JSON.stringify({error: 'الحسابات قيد التجهيز؛ جرّب بعد شوية'})); return;
@@ -75,19 +76,23 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
             let code;
             do { code = String(randomInt(100000, 1000000)); } while (store.rooms.has(code));
             const user = message.accountToken && accountApi ? await accountApi.authenticate(message.accountToken) : null;
+            check(!message.gameId || message.gameId === 'flags', 'اللعبة مش متاحة');
+            check(!(message.gameId && message.packId), 'اختار لعبة واحدة');
             let custom;
             if (message.packId) {
               check(accountApi, 'الباقات قيد التجهيز');
               custom = await accountApi.packForGame(message.packId, message.accountToken);
               check([...store.rooms.values()].filter(r => r.customBank).length < 100, 'غرف الباقات مشغولة دلوقتي؛ جرّب لاحقًا');
             }
-            const chosenBank = custom?.bank ?? bank;
-            const settings = custom ? {...message.settings, categories: ['باقة مخصصة'], level: 'mixed'} : message.settings;
+            const flags = message.gameId === 'flags';
+            const chosenBank = custom?.bank ?? (flags ? flagBank : bank);
+            const settings = custom ? {...message.settings, categories: ['باقة مخصصة'], level: 'mixed'} : flags ? {...message.settings, categories: ['أعلام الدول'], level: 'mixed'} : message.settings;
             const {room, token} = createRoom(code, user?.name ?? message.name, settings, chosenBank, now());
             if (accountApi) room.access = await accountApi.roomAccess(message.access, user);
             else check(!message.access || message.access.mode === 'anyone', 'سجّل دخولك عشان تستخدم خصوصية الغرفة');
             if (user) { room.players[0].accountId = user._id; room.players[0].avatar = user.avatar; }
             if (custom) { room.customBank = chosenBank; room.pack = custom.pack; }
+            if (flags) { room.gameId = 'flags'; room.pack = flagPack; }
             store.save(room); attach(room, room.hostId, token); return;
           }
           const code = String(message.code ?? '').trim();
@@ -134,7 +139,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
         const activeBank = bankFor(room);
         if (advanceClock(room, activeBank, now())) { room.revision++; store.save(room); broadcast(code); room = structuredClone(room); }
         command(room, id, message, activeBank, now(), online(code));
-        if (message.type === 'start' && room.pack && accountApi) {
+        if (message.type === 'start' && room.pack && !room.gameId && accountApi) {
           void accountApi.played(room.pack.id).catch(() => console.error('Pack play count update failed'));
         }
         room.revision++; store.save(room); broadcast(code);

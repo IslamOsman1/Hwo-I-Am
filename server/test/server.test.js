@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import WebSocket from 'ws';
 import {startServer} from '../src/server.js';
+import {flagBank} from '../src/flag_game.js';
 
 async function client(url) {
   const ws = new WebSocket(url);
@@ -30,6 +31,50 @@ async function client(url) {
 }
 const type = t => m => m.type === t;
 const phase = p => m => m.type === 'state' && m.room.phase === p;
+
+test('flag game sends pictures without answers, grades country names and resumes the same flag', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'menana-flags-'));
+  let time = 100000;
+  let app = startServer({port: 0, dataDir: directory, now: () => time});
+  const sockets = [];
+  try {
+    await once(app.http, 'listening');
+    const url = `ws://127.0.0.1:${app.http.address().port}/ws`;
+    const host = await client(url); sockets.push(host.ws);
+    host.send({type: 'create', gameId: 'flags', name: 'أحمد', settings: {rounds: 1, questionsPerRound: 1, seconds: 20, halfWhenBothCorrect: true, level: 'mixed', categories: ['أعلام الدول']}});
+    const session = await host.next(type('session'));
+    const lobby = (await host.next(phase('lobby'))).room;
+    assert.equal(lobby.pack.gameId, 'flags'); assert.equal(lobby.pack.questionCount, 195);
+    const guest = await client(url); sockets.push(guest.ws);
+    guest.send({type: 'join', code: session.code, name: 'منى'}); await guest.next(type('session'));
+    host.send({type: 'ready', ready: true}); guest.send({type: 'ready', ready: true});
+    await host.next(m => m.type === 'state' && m.room.players.length === 2 && m.room.players.every(p => p.ready));
+    host.send({type: 'start', index: -1}); await host.next(phase('countdown'));
+    time += 3000;
+    const current = (await host.next(phase('question'))).room;
+    const expected = flagBank.find(q => q.id === app.store.rooms.get(session.code).deck[0]);
+    assert.equal(current.question.image, expected.image);
+    assert.equal(current.question.prompt, 'ده علم أنهي دولة؟');
+    assert.equal(current.question.answers, undefined);
+    assert.equal(current.question.id, undefined);
+    assert.equal(current.history.length, 0);
+    await app.close();
+    app = startServer({port: 0, dataDir: directory, now: () => time}); await once(app.http, 'listening');
+    const resumed = await client(`ws://127.0.0.1:${app.http.address().port}/ws`); sockets.push(resumed.ws);
+    resumed.send({type: 'resume', code: session.code, token: session.token}); await resumed.next(type('session'));
+    assert.equal((await resumed.next(phase('question'))).room.question.image, expected.image);
+    resumed.send({type: 'answer', index: 0, text: expected.answers.at(-1)});
+    await resumed.next(m => m.type === 'state' && m.room.submitted.length === 1);
+    time += 21000;
+    const result = (await resumed.next(phase('review'))).room;
+    assert.equal(result.history[0].answer, expected.answers[0]);
+    assert.equal(result.history[0].image, expected.image);
+    assert.equal(result.ranking[0].score, 20);
+  } finally {
+    for (const ws of sockets) ws.terminate(); await app.close();
+    rmSync(directory, {recursive: true, force: true});
+  }
+});
 
 test('two real websocket clients create, join, answer, review, finish, restart and resume', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'menana-e2e-'));

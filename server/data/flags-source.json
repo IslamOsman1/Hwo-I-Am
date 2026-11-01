@@ -1,0 +1,1424 @@
+{
+  "source": "https://flagpedia.net/download/api",
+  "images": "https://flagcdn.com",
+  "scope": "193 UN members plus Palestine and Holy See",
+  "count": 195,
+  "downloaded": "2026-11-01T01:16:07.500Z",
+  "countries": [
+    {
+      "code": "af",
+      "answers": [
+        "أفغانستان",
+        "Afghanistan"
+      ]
+    },
+    {
+      "code": "al",
+      "answers": [
+        "ألبانيا",
+        "Albania"
+      ]
+    },
+    {
+      "code": "dz",
+      "answers": [
+        "الجزائر",
+        "Algeria"
+      ]
+    },
+    {
+      "code": "ad",
+      "answers": [
+        "أندورا",
+        "Andorra"
+      ]
+    },
+    {
+      "code": "ao",
+      "answers": [
+        "أنغولا",
+        "Angola"
+      ]
+    },
+    {
+      "code": "ag",
+      "answers": [
+        "أنتيغوا وبربودا",
+        "Antigua & Barbuda"
+      ]
+    },
+    {
+      "code": "ar",
+      "answers": [
+        "الأرجنتين",
+        "Argentina"
+      ]
+    },
+    {
+      "code": "am",
+      "answers": [
+        "أرمينيا",
+        "Armenia"
+      ]
+    },
+    {
+      "code": "au",
+      "answers": [
+        "أستراليا",
+        "Australia"
+      ]
+    },
+    {
+      "code": "at",
+      "answers": [
+        "النمسا",
+        "Austria"
+      ]
+    },
+    {
+      "code": "az",
+      "answers": [
+        "أذربيجان",
+        "Azerbaijan"
+      ]
+    },
+    {
+      "code": "bs",
+      "answers": [
+        "جزر البهاما",
+        "Bahamas"
+      ]
+    },
+    {
+      "code": "bh",
+      "answers": [
+        "البحرين",
+        "Bahrain"
+      ]
+    },
+    {
+      "code": "bd",
+      "answers": [
+        "بنغلاديش",
+        "Bangladesh"
+      ]
+    },
+    {
+      "code": "bb",
+      "answers": [
+        "بربادوس",
+        "Barbados"
+      ]
+    },
+    {
+      "code": "by",
+      "answers": [
+        "بيلاروس",
+        "Belarus"
+      ]
+    },
+    {
+      "code": "be",
+      "answers": [
+        "بلجيكا",
+        "Belgium"
+      ]
+    },
+    {
+      "code": "bz",
+      "answers": [
+        "بليز",
+        "Belize"
+      ]
+    },
+    {
+      "code": "bj",
+      "answers": [
+        "بنين",
+        "Benin"
+      ]
+    },
+    {
+      "code": "bt",
+      "answers": [
+        "بوتان",
+        "Bhutan"
+      ]
+    },
+    {
+      "code": "bo",
+      "answers": [
+        "بوليفيا",
+        "Bolivia"
+      ]
+    },
+    {
+      "code": "ba",
+      "answers": [
+        "البوسنة والهرسك",
+        "البوسنة",
+        "Bosnia & Herzegovina"
+      ]
+    },
+    {
+      "code": "bw",
+      "answers": [
+        "بوتسوانا",
+        "Botswana"
+      ]
+    },
+    {
+      "code": "br",
+      "answers": [
+        "البرازيل",
+        "Brazil"
+      ]
+    },
+    {
+      "code": "bn",
+      "answers": [
+        "بروناي",
+        "Brunei"
+      ]
+    },
+    {
+      "code": "bg",
+      "answers": [
+        "بلغاريا",
+        "Bulgaria"
+      ]
+    },
+    {
+      "code": "bf",
+      "answers": [
+        "بوركينا فاسو",
+        "Burkina Faso"
+      ]
+    },
+    {
+      "code": "bi",
+      "answers": [
+        "بوروندي",
+        "Burundi"
+      ]
+    },
+    {
+      "code": "cv",
+      "answers": [
+        "الرأس الأخضر",
+        "كابو فيردي",
+        "Cape Verde"
+      ]
+    },
+    {
+      "code": "kh",
+      "answers": [
+        "كمبوديا",
+        "Cambodia"
+      ]
+    },
+    {
+      "code": "cm",
+      "answers": [
+        "الكاميرون",
+        "Cameroon"
+      ]
+    },
+    {
+      "code": "ca",
+      "answers": [
+        "كندا",
+        "Canada"
+      ]
+    },
+    {
+      "code": "cf",
+      "answers": [
+        "جمهورية أفريقيا الوسطى",
+        "Central African Republic"
+      ]
+    },
+    {
+      "code": "td",
+      "answers": [
+        "تشاد",
+        "Chad"
+      ]
+    },
+    {
+      "code": "cl",
+      "answers": [
+        "تشيلي",
+        "Chile"
+      ]
+    },
+    {
+      "code": "cn",
+      "answers": [
+        "الصين",
+        "China"
+      ]
+    },
+    {
+      "code": "co",
+      "answers": [
+        "كولومبيا",
+        "Colombia"
+      ]
+    },
+    {
+      "code": "km",
+      "answers": [
+        "جزر القمر",
+        "Comoros"
+      ]
+    },
+    {
+      "code": "cg",
+      "answers": [
+        "الكونغو",
+        "جمهورية الكونغو",
+        "Republic of the Congo",
+        "Congo",
+        "الكونغو - برازافيل",
+        "Congo - Brazzaville"
+      ]
+    },
+    {
+      "code": "cd",
+      "answers": [
+        "الكونغو الديمقراطية",
+        "جمهورية الكونغو الديمقراطية",
+        "DR Congo",
+        "Democratic Republic of the Congo",
+        "الكونغو - كينشاسا",
+        "Congo - Kinshasa"
+      ]
+    },
+    {
+      "code": "cr",
+      "answers": [
+        "كوستاريكا",
+        "Costa Rica"
+      ]
+    },
+    {
+      "code": "ci",
+      "answers": [
+        "ساحل العاج",
+        "كوت ديفوار",
+        "Ivory Coast",
+        "Cote d'Ivoire",
+        "Côte d’Ivoire"
+      ]
+    },
+    {
+      "code": "hr",
+      "answers": [
+        "كرواتيا",
+        "Croatia"
+      ]
+    },
+    {
+      "code": "cu",
+      "answers": [
+        "كوبا",
+        "Cuba"
+      ]
+    },
+    {
+      "code": "cy",
+      "answers": [
+        "قبرص",
+        "Cyprus"
+      ]
+    },
+    {
+      "code": "cz",
+      "answers": [
+        "التشيك",
+        "جمهورية التشيك",
+        "Czech Republic",
+        "Czechia"
+      ]
+    },
+    {
+      "code": "dk",
+      "answers": [
+        "الدانمرك",
+        "Denmark"
+      ]
+    },
+    {
+      "code": "dj",
+      "answers": [
+        "جيبوتي",
+        "Djibouti"
+      ]
+    },
+    {
+      "code": "dm",
+      "answers": [
+        "دومينيكا",
+        "Dominica"
+      ]
+    },
+    {
+      "code": "do",
+      "answers": [
+        "جمهورية الدومينيكان",
+        "Dominican Republic"
+      ]
+    },
+    {
+      "code": "ec",
+      "answers": [
+        "الإكوادور",
+        "Ecuador"
+      ]
+    },
+    {
+      "code": "eg",
+      "answers": [
+        "مصر",
+        "جمهورية مصر العربية",
+        "Egypt"
+      ]
+    },
+    {
+      "code": "sv",
+      "answers": [
+        "السلفادور",
+        "El Salvador"
+      ]
+    },
+    {
+      "code": "gq",
+      "answers": [
+        "غينيا الاستوائية",
+        "Equatorial Guinea"
+      ]
+    },
+    {
+      "code": "er",
+      "answers": [
+        "إريتريا",
+        "Eritrea"
+      ]
+    },
+    {
+      "code": "ee",
+      "answers": [
+        "إستونيا",
+        "Estonia"
+      ]
+    },
+    {
+      "code": "sz",
+      "answers": [
+        "إسواتيني",
+        "اسواتيني",
+        "سوازيلاند",
+        "Swaziland",
+        "Eswatini"
+      ]
+    },
+    {
+      "code": "et",
+      "answers": [
+        "إثيوبيا",
+        "Ethiopia"
+      ]
+    },
+    {
+      "code": "fj",
+      "answers": [
+        "فيجي",
+        "Fiji"
+      ]
+    },
+    {
+      "code": "fi",
+      "answers": [
+        "فنلندا",
+        "Finland"
+      ]
+    },
+    {
+      "code": "fr",
+      "answers": [
+        "فرنسا",
+        "France"
+      ]
+    },
+    {
+      "code": "ga",
+      "answers": [
+        "الغابون",
+        "Gabon"
+      ]
+    },
+    {
+      "code": "gm",
+      "answers": [
+        "غامبيا",
+        "Gambia"
+      ]
+    },
+    {
+      "code": "ge",
+      "answers": [
+        "جورجيا",
+        "Georgia"
+      ]
+    },
+    {
+      "code": "de",
+      "answers": [
+        "ألمانيا",
+        "Germany"
+      ]
+    },
+    {
+      "code": "gh",
+      "answers": [
+        "غانا",
+        "Ghana"
+      ]
+    },
+    {
+      "code": "gr",
+      "answers": [
+        "اليونان",
+        "Greece"
+      ]
+    },
+    {
+      "code": "gd",
+      "answers": [
+        "غرينادا",
+        "Grenada"
+      ]
+    },
+    {
+      "code": "gt",
+      "answers": [
+        "غواتيمالا",
+        "Guatemala"
+      ]
+    },
+    {
+      "code": "gn",
+      "answers": [
+        "غينيا",
+        "Guinea"
+      ]
+    },
+    {
+      "code": "gw",
+      "answers": [
+        "غينيا بيساو",
+        "Guinea-Bissau"
+      ]
+    },
+    {
+      "code": "gy",
+      "answers": [
+        "غيانا",
+        "Guyana"
+      ]
+    },
+    {
+      "code": "ht",
+      "answers": [
+        "هايتي",
+        "Haiti"
+      ]
+    },
+    {
+      "code": "hn",
+      "answers": [
+        "هندوراس",
+        "Honduras"
+      ]
+    },
+    {
+      "code": "hu",
+      "answers": [
+        "هنغاريا",
+        "Hungary"
+      ]
+    },
+    {
+      "code": "is",
+      "answers": [
+        "آيسلندا",
+        "Iceland"
+      ]
+    },
+    {
+      "code": "in",
+      "answers": [
+        "الهند",
+        "India"
+      ]
+    },
+    {
+      "code": "id",
+      "answers": [
+        "إندونيسيا",
+        "Indonesia"
+      ]
+    },
+    {
+      "code": "ir",
+      "answers": [
+        "إيران",
+        "Iran"
+      ]
+    },
+    {
+      "code": "iq",
+      "answers": [
+        "العراق",
+        "Iraq"
+      ]
+    },
+    {
+      "code": "ie",
+      "answers": [
+        "أيرلندا",
+        "Ireland"
+      ]
+    },
+    {
+      "code": "il",
+      "answers": [
+        "إسرائيل",
+        "Israel"
+      ]
+    },
+    {
+      "code": "it",
+      "answers": [
+        "إيطاليا",
+        "Italy"
+      ]
+    },
+    {
+      "code": "jm",
+      "answers": [
+        "جامايكا",
+        "Jamaica"
+      ]
+    },
+    {
+      "code": "jp",
+      "answers": [
+        "اليابان",
+        "Japan"
+      ]
+    },
+    {
+      "code": "jo",
+      "answers": [
+        "الأردن",
+        "Jordan"
+      ]
+    },
+    {
+      "code": "kz",
+      "answers": [
+        "كازاخستان",
+        "Kazakhstan"
+      ]
+    },
+    {
+      "code": "ke",
+      "answers": [
+        "كينيا",
+        "Kenya"
+      ]
+    },
+    {
+      "code": "ki",
+      "answers": [
+        "كيريباتي",
+        "Kiribati"
+      ]
+    },
+    {
+      "code": "kp",
+      "answers": [
+        "كوريا الشمالية",
+        "North Korea"
+      ]
+    },
+    {
+      "code": "kr",
+      "answers": [
+        "كوريا الجنوبية",
+        "South Korea"
+      ]
+    },
+    {
+      "code": "kw",
+      "answers": [
+        "الكويت",
+        "Kuwait"
+      ]
+    },
+    {
+      "code": "kg",
+      "answers": [
+        "قيرغيزستان",
+        "Kyrgyzstan"
+      ]
+    },
+    {
+      "code": "la",
+      "answers": [
+        "لاوس",
+        "Lao PDR",
+        "Laos"
+      ]
+    },
+    {
+      "code": "lv",
+      "answers": [
+        "لاتفيا",
+        "Latvia"
+      ]
+    },
+    {
+      "code": "lb",
+      "answers": [
+        "لبنان",
+        "Lebanon"
+      ]
+    },
+    {
+      "code": "ls",
+      "answers": [
+        "ليسوتو",
+        "Lesotho"
+      ]
+    },
+    {
+      "code": "lr",
+      "answers": [
+        "ليبيريا",
+        "Liberia"
+      ]
+    },
+    {
+      "code": "ly",
+      "answers": [
+        "ليبيا",
+        "Libya"
+      ]
+    },
+    {
+      "code": "li",
+      "answers": [
+        "ليختنشتاين",
+        "Liechtenstein"
+      ]
+    },
+    {
+      "code": "lt",
+      "answers": [
+        "ليتوانيا",
+        "Lithuania"
+      ]
+    },
+    {
+      "code": "lu",
+      "answers": [
+        "لوكسمبورغ",
+        "Luxembourg"
+      ]
+    },
+    {
+      "code": "mg",
+      "answers": [
+        "مدغشقر",
+        "Madagascar"
+      ]
+    },
+    {
+      "code": "mw",
+      "answers": [
+        "ملاوي",
+        "Malawi"
+      ]
+    },
+    {
+      "code": "my",
+      "answers": [
+        "ماليزيا",
+        "Malaysia"
+      ]
+    },
+    {
+      "code": "mv",
+      "answers": [
+        "جزر المالديف",
+        "Maldives"
+      ]
+    },
+    {
+      "code": "ml",
+      "answers": [
+        "مالي",
+        "Mali"
+      ]
+    },
+    {
+      "code": "mt",
+      "answers": [
+        "مالطا",
+        "Malta"
+      ]
+    },
+    {
+      "code": "mh",
+      "answers": [
+        "جزر مارشال",
+        "Marshall Islands"
+      ]
+    },
+    {
+      "code": "mr",
+      "answers": [
+        "موريتانيا",
+        "Mauritania"
+      ]
+    },
+    {
+      "code": "mu",
+      "answers": [
+        "موريشيوس",
+        "Mauritius"
+      ]
+    },
+    {
+      "code": "mx",
+      "answers": [
+        "المكسيك",
+        "Mexico"
+      ]
+    },
+    {
+      "code": "fm",
+      "answers": [
+        "ميكرونيزيا",
+        "Micronesia"
+      ]
+    },
+    {
+      "code": "md",
+      "answers": [
+        "مولدوفا",
+        "Moldova"
+      ]
+    },
+    {
+      "code": "mc",
+      "answers": [
+        "موناكو",
+        "Monaco"
+      ]
+    },
+    {
+      "code": "mn",
+      "answers": [
+        "منغوليا",
+        "Mongolia"
+      ]
+    },
+    {
+      "code": "me",
+      "answers": [
+        "الجبل الأسود",
+        "Montenegro"
+      ]
+    },
+    {
+      "code": "ma",
+      "answers": [
+        "المغرب",
+        "Morocco"
+      ]
+    },
+    {
+      "code": "mz",
+      "answers": [
+        "موزمبيق",
+        "Mozambique"
+      ]
+    },
+    {
+      "code": "mm",
+      "answers": [
+        "ميانمار",
+        "بورما",
+        "Burma",
+        "ميانمار (بورما)",
+        "Myanmar (Burma)"
+      ]
+    },
+    {
+      "code": "na",
+      "answers": [
+        "ناميبيا",
+        "Namibia"
+      ]
+    },
+    {
+      "code": "nr",
+      "answers": [
+        "ناورو",
+        "Nauru"
+      ]
+    },
+    {
+      "code": "np",
+      "answers": [
+        "نيبال",
+        "Nepal"
+      ]
+    },
+    {
+      "code": "nl",
+      "answers": [
+        "هولندا",
+        "Netherlands"
+      ]
+    },
+    {
+      "code": "nz",
+      "answers": [
+        "نيوزيلندا",
+        "New Zealand"
+      ]
+    },
+    {
+      "code": "ni",
+      "answers": [
+        "نيكاراغوا",
+        "Nicaragua"
+      ]
+    },
+    {
+      "code": "ne",
+      "answers": [
+        "النيجر",
+        "Niger"
+      ]
+    },
+    {
+      "code": "ng",
+      "answers": [
+        "نيجيريا",
+        "Nigeria"
+      ]
+    },
+    {
+      "code": "mk",
+      "answers": [
+        "مقدونيا الشمالية",
+        "مقدونيا",
+        "North Macedonia"
+      ]
+    },
+    {
+      "code": "no",
+      "answers": [
+        "النرويج",
+        "Norway"
+      ]
+    },
+    {
+      "code": "om",
+      "answers": [
+        "عمان",
+        "سلطنة عمان",
+        "عُمان",
+        "Oman"
+      ]
+    },
+    {
+      "code": "pk",
+      "answers": [
+        "باكستان",
+        "Pakistan"
+      ]
+    },
+    {
+      "code": "pw",
+      "answers": [
+        "بالاو",
+        "Palau"
+      ]
+    },
+    {
+      "code": "pa",
+      "answers": [
+        "بنما",
+        "Panama"
+      ]
+    },
+    {
+      "code": "pg",
+      "answers": [
+        "بابوا غينيا الجديدة",
+        "Papua New Guinea"
+      ]
+    },
+    {
+      "code": "py",
+      "answers": [
+        "باراغواي",
+        "Paraguay"
+      ]
+    },
+    {
+      "code": "pe",
+      "answers": [
+        "بيرو",
+        "Peru"
+      ]
+    },
+    {
+      "code": "ph",
+      "answers": [
+        "الفلبين",
+        "Philippines"
+      ]
+    },
+    {
+      "code": "pl",
+      "answers": [
+        "بولندا",
+        "Poland"
+      ]
+    },
+    {
+      "code": "pt",
+      "answers": [
+        "البرتغال",
+        "Portugal"
+      ]
+    },
+    {
+      "code": "qa",
+      "answers": [
+        "قطر",
+        "Qatar"
+      ]
+    },
+    {
+      "code": "ro",
+      "answers": [
+        "رومانيا",
+        "Romania"
+      ]
+    },
+    {
+      "code": "ru",
+      "answers": [
+        "روسيا",
+        "روسيا الاتحادية",
+        "Russian Federation",
+        "Russia"
+      ]
+    },
+    {
+      "code": "rw",
+      "answers": [
+        "رواندا",
+        "Rwanda"
+      ]
+    },
+    {
+      "code": "kn",
+      "answers": [
+        "سانت كيتس ونيفيس",
+        "St. Kitts & Nevis"
+      ]
+    },
+    {
+      "code": "lc",
+      "answers": [
+        "سانت لوسيا",
+        "St. Lucia"
+      ]
+    },
+    {
+      "code": "vc",
+      "answers": [
+        "سانت فنسنت وجزر غرينادين",
+        "St. Vincent & Grenadines"
+      ]
+    },
+    {
+      "code": "ws",
+      "answers": [
+        "ساموا",
+        "Samoa"
+      ]
+    },
+    {
+      "code": "sm",
+      "answers": [
+        "سان مارينو",
+        "San Marino"
+      ]
+    },
+    {
+      "code": "st",
+      "answers": [
+        "ساو تومي وبرينسيبي",
+        "ساوتومي وبرينسيب",
+        "São Tomé & Príncipe"
+      ]
+    },
+    {
+      "code": "sa",
+      "answers": [
+        "السعودية",
+        "المملكة العربية السعودية",
+        "Saudi Arabia"
+      ]
+    },
+    {
+      "code": "sn",
+      "answers": [
+        "السنغال",
+        "Senegal"
+      ]
+    },
+    {
+      "code": "rs",
+      "answers": [
+        "صربيا",
+        "Serbia"
+      ]
+    },
+    {
+      "code": "sc",
+      "answers": [
+        "سيشل",
+        "Seychelles"
+      ]
+    },
+    {
+      "code": "sl",
+      "answers": [
+        "سيراليون",
+        "Sierra Leone"
+      ]
+    },
+    {
+      "code": "sg",
+      "answers": [
+        "سنغافورة",
+        "Singapore"
+      ]
+    },
+    {
+      "code": "sk",
+      "answers": [
+        "سلوفاكيا",
+        "Slovakia"
+      ]
+    },
+    {
+      "code": "si",
+      "answers": [
+        "سلوفينيا",
+        "Slovenia"
+      ]
+    },
+    {
+      "code": "sb",
+      "answers": [
+        "جزر سليمان",
+        "Solomon Islands"
+      ]
+    },
+    {
+      "code": "so",
+      "answers": [
+        "الصومال",
+        "Somalia"
+      ]
+    },
+    {
+      "code": "za",
+      "answers": [
+        "جنوب أفريقيا",
+        "South Africa"
+      ]
+    },
+    {
+      "code": "ss",
+      "answers": [
+        "جنوب السودان",
+        "South Sudan"
+      ]
+    },
+    {
+      "code": "es",
+      "answers": [
+        "إسبانيا",
+        "Spain"
+      ]
+    },
+    {
+      "code": "lk",
+      "answers": [
+        "سريلانكا",
+        "Sri Lanka"
+      ]
+    },
+    {
+      "code": "sd",
+      "answers": [
+        "السودان",
+        "Sudan"
+      ]
+    },
+    {
+      "code": "sr",
+      "answers": [
+        "سورينام",
+        "Suriname"
+      ]
+    },
+    {
+      "code": "se",
+      "answers": [
+        "السويد",
+        "Sweden"
+      ]
+    },
+    {
+      "code": "ch",
+      "answers": [
+        "سويسرا",
+        "Switzerland"
+      ]
+    },
+    {
+      "code": "sy",
+      "answers": [
+        "سوريا",
+        "سورية",
+        "Syria"
+      ]
+    },
+    {
+      "code": "tj",
+      "answers": [
+        "طاجيكستان",
+        "Tajikistan"
+      ]
+    },
+    {
+      "code": "tz",
+      "answers": [
+        "تنزانيا",
+        "Tanzania"
+      ]
+    },
+    {
+      "code": "th",
+      "answers": [
+        "تايلاند",
+        "Thailand"
+      ]
+    },
+    {
+      "code": "tl",
+      "answers": [
+        "تيمور الشرقية",
+        "East Timor",
+        "تيمور - ليشتي",
+        "Timor-Leste"
+      ]
+    },
+    {
+      "code": "tg",
+      "answers": [
+        "توغو",
+        "Togo"
+      ]
+    },
+    {
+      "code": "to",
+      "answers": [
+        "تونغا",
+        "Tonga"
+      ]
+    },
+    {
+      "code": "tt",
+      "answers": [
+        "ترينيداد وتوباغو",
+        "Trinidad & Tobago"
+      ]
+    },
+    {
+      "code": "tn",
+      "answers": [
+        "تونس",
+        "Tunisia"
+      ]
+    },
+    {
+      "code": "tr",
+      "answers": [
+        "تركيا",
+        "Turkey",
+        "Türkiye"
+      ]
+    },
+    {
+      "code": "tm",
+      "answers": [
+        "تركمانستان",
+        "Turkmenistan"
+      ]
+    },
+    {
+      "code": "tv",
+      "answers": [
+        "توفالو",
+        "Tuvalu"
+      ]
+    },
+    {
+      "code": "ug",
+      "answers": [
+        "أوغندا",
+        "Uganda"
+      ]
+    },
+    {
+      "code": "ua",
+      "answers": [
+        "أوكرانيا",
+        "Ukraine"
+      ]
+    },
+    {
+      "code": "ae",
+      "answers": [
+        "الإمارات",
+        "الامارات العربية المتحدة",
+        "الإمارات العربية المتحدة",
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "code": "gb",
+      "answers": [
+        "بريطانيا",
+        "المملكة المتحدة",
+        "المملكة المتحدة لبريطانيا العظمى وأيرلندا الشمالية",
+        "UK",
+        "United Kingdom"
+      ]
+    },
+    {
+      "code": "us",
+      "answers": [
+        "أمريكا",
+        "امريكا",
+        "الولايات المتحدة",
+        "الولايات المتحدة الأمريكية",
+        "USA",
+        "United States",
+        "United States of America"
+      ]
+    },
+    {
+      "code": "uy",
+      "answers": [
+        "أورغواي",
+        "Uruguay"
+      ]
+    },
+    {
+      "code": "uz",
+      "answers": [
+        "أوزبكستان",
+        "Uzbekistan"
+      ]
+    },
+    {
+      "code": "vu",
+      "answers": [
+        "فانواتو",
+        "Vanuatu"
+      ]
+    },
+    {
+      "code": "va",
+      "answers": [
+        "الفاتيكان",
+        "دولة الفاتيكان",
+        "Holy See",
+        "Vatican",
+        "Vatican City"
+      ]
+    },
+    {
+      "code": "ve",
+      "answers": [
+        "فنزويلا",
+        "Venezuela"
+      ]
+    },
+    {
+      "code": "vn",
+      "answers": [
+        "فيتنام",
+        "Vietnam"
+      ]
+    },
+    {
+      "code": "ye",
+      "answers": [
+        "اليمن",
+        "Yemen"
+      ]
+    },
+    {
+      "code": "zm",
+      "answers": [
+        "زامبيا",
+        "Zambia"
+      ]
+    },
+    {
+      "code": "zw",
+      "answers": [
+        "زيمبابوي",
+        "Zimbabwe"
+      ]
+    },
+    {
+      "code": "ps",
+      "answers": [
+        "فلسطين",
+        "دولة فلسطين",
+        "Palestine",
+        "الأراضي الفلسطينية",
+        "Palestinian Territories"
+      ]
+    }
+  ]
+}

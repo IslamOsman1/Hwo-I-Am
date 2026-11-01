@@ -29,7 +29,7 @@ export function startServer({port = Number(process.env.PORT || 3000), dataDir = 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '4.1.0', flags: flagBank.length, questions: bank.length, accounts: !!accountApi})); return; }
+    if (req.url === '/health') { res.end(JSON.stringify({ok: true, version: '4.2.0', flags: flagBank.length, questions: bank.length, accounts: !!accountApi})); return; }
     if (req.url?.startsWith('/api/')) {
       if (accountApi) { void accountApi.handle(req, res); return; }
       res.statusCode = 503; res.end(JSON.stringify({error: 'الحسابات قيد التجهيز؛ جرّب بعد شوية'})); return;

@@ -1,5 +1,6 @@
 import {MongoClient} from 'mongodb';
 import {randomBytes, scrypt, timingSafeEqual} from 'node:crypto';
+import {ObjectId} from 'mongodb';
 import {promisify} from 'node:util';
 import sharp from 'sharp';
 import {digest, normalize, playerName, GameError} from './game.js';
@@ -109,12 +110,16 @@ export class AccountApi {
     this.users = db.collection('users'); this.sessions = db.collection('sessions'); this.packs = db.collection('packs');
     this.friends = db.collection('friendships');
     this.invites = db.collection('game_invites');
+    this.messages = db.collection('friend_messages');
   }
   async init() {
     await Promise.all([
       this.users.createIndex({email: 1}, {unique: true}),
       this.users.createIndex({friendCode: 1}, {unique: true, sparse: true}),
       this.friends.createIndex({members: 1, status: 1}),
+      this.messages.createIndex({pair: 1, _id: -1}),
+      this.messages.createIndex({toUserId: 1, readAt: 1, pair: 1}),
+      this.messages.createIndex({pair: 1, fromUserId: 1, clientId: 1}, {unique: true}),
       this.invites.createIndex({expiresAt: 1}, {expireAfterSeconds: 0}),
       this.invites.createIndex({toUserId: 1}),
       this.sessions.createIndex({expiresAt: 1}, {expireAfterSeconds: 0}),
@@ -267,6 +272,48 @@ export class AccountApi {
           const relation = relations.find(r => r.members.includes(p._id));
           return {...friendProfile(p), relationship: !relation ? 'none' : relation.status === 'accepted' ? 'friends' : relation.requestedBy === user._id ? 'outgoing' : 'incoming'};
         })}); return;
+      }
+      if (route === '/api/social/summary' && method === 'GET') {
+        const user = await this.authenticate(token);
+        const accepted = await this.friends.find({members: user._id, status: 'accepted'}).project({_id: 1, members: 1}).limit(500).toArray();
+        const unread = await this.messages.aggregate([{$match: {toUserId: user._id, readAt: null, pair: {$in: accepted.map(r => r._id)}}}, {$group: {_id: '$fromUserId', count: {$sum: 1}}}]).toArray();
+        send(200, {friendsCount: accepted.length, pendingRequests: await this.friends.countDocuments({members: user._id, status: 'pending', requestedBy: {$ne: user._id}}), unreadByFriend: Object.fromEntries(unread.map(r => [r._id, r.count]))}); return;
+      }
+      const chatRoute = /^\/api\/chats\/([a-f0-9]{24})(\/read)?$/.exec(route);
+      if (chatRoute) {
+        const user = await this.authenticate(token);
+        const other = chatRoute[1];
+        requireValue(other !== user._id && await this.areFriends(user._id, other), 'الشات متاح بين الأصدقاء المقبولين فقط', 403);
+        const pair = this.pair(user._id, other);
+        const person = await this.users.findOne({_id: other});
+        requireValue(person, 'الصديق غير موجود', 404);
+        if (!chatRoute[2] && method === 'GET') {
+          const before = url.searchParams.get('before'), after = url.searchParams.get('after');
+          requireValue(!(before && after) && [before, after].every(id => !id || /^[a-f0-9]{24}$/.test(id)), 'مؤشر الرسائل غير صحيح');
+          const filter = {pair, ...(before ? {_id: {$lt: before}} : after ? {_id: {$gt: after}} : {})};
+          const rows = await this.messages.find(filter).sort({_id: after ? 1 : -1}).limit(51).toArray();
+          const messages = rows.slice(0, 50); if (!after) messages.reverse();
+          send(200, {friend: friendProfile(person), messages: messages.map(m => ({id: m._id, fromUserId: m.fromUserId, text: m.text, createdAt: m.createdAt, readAt: m.readAt})), hasMore: rows.length > 50}); return;
+        }
+        if (!chatRoute[2] && method === 'POST') {
+          this.rate(`chat:${user._id}`, 30);
+          const input = await readBody(req);
+          const content = text(input.text, 1000, 'الرسالة');
+          requireValue(typeof input.clientId === 'string' && /^[a-f0-9]{32}$/.test(input.clientId), 'معرّف الرسالة غير صحيح');
+          const key = {pair, fromUserId: user._id, clientId: input.clientId};
+          const message = {_id: new ObjectId().toHexString(), ...key, toUserId: other, text: content, createdAt: this.now(), readAt: null};
+          let saved;
+          try { saved = await this.messages.findOneAndUpdate(key, {$setOnInsert: message}, {upsert: true, returnDocument: 'after'}); }
+          catch (error) { if (error.code !== 11000) throw error; saved = await this.messages.findOne(key); }
+          requireValue(saved.text === content, 'الرسالة دي اتبعتت بمحتوى مختلف؛ ابعت رسالة جديدة', 409);
+          send(200, {message: {id: saved._id, fromUserId: saved.fromUserId, text: saved.text, createdAt: saved.createdAt, readAt: saved.readAt}}); return;
+        }
+        if (chatRoute[2] && method === 'POST') {
+          const input = await readBody(req);
+          requireValue(typeof input.throughId === 'string' && /^[a-f0-9]{24}$/.test(input.throughId), 'معرّف آخر رسالة غير صحيح');
+          await this.messages.updateMany({pair, toUserId: user._id, readAt: null, _id: {$lte: input.throughId}}, {$set: {readAt: this.now()}});
+          send(200, {ok: true}); return;
+        }
       }
       if (route === '/api/friends' && method === 'GET') {
         const user = await this.authenticate(token);
